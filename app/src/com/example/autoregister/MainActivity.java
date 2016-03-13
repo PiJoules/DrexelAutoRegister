@@ -25,10 +25,12 @@ import java.util.GregorianCalendar;
 import java.util.Calendar;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity implements Runnable {
 	/* This is hardocded for now and must change depending on where the server is running. */
-	private String ENDPOINT = "http://192.168.1.110:8080/test_post";
+	// private String ENDPOINT = "http://192.168.1.110:8080/test_post";
+	private String ENDPOINT = "http://192.168.1.102:8080/register_user";
 
 	private int n;  // This auto-incrementing variable is just for testing that the app will still run while asleep
 	private TextView tv;
@@ -71,6 +73,7 @@ public class MainActivity extends Activity implements Runnable {
 						                timePicker.getCurrentHour(),
 						                timePicker.getCurrentMinute());
 				sent = false;
+				((TextView) findViewById(R.id.status)).setText("");
 				Toast.makeText(getApplicationContext(), datetime, Toast.LENGTH_SHORT).show();
         	}
         });
@@ -144,7 +147,17 @@ public class MainActivity extends Activity implements Runnable {
 	        String urlParameters = String.format("id=%s&password=%s&crns=%s", id, password, crnsJSON);
 	        out.write(urlParameters);
 	        out.close();
-	        Log.v("TAG", handleStream(httpCon.getInputStream()));
+
+	        int respCode = httpCon.getResponseCode();
+	        String resp = "";
+	        if (respCode == 200){
+	        	resp = new JSONObject(handleStream(httpCon.getInputStream())).getString("message");
+	        }
+	        else {
+	        	resp = new JSONObject(handleStream(httpCon.getErrorStream())).getString("message");
+	        }
+	        Log.v("TAG", resp);
+	        ((TextView) findViewById(R.id.status)).setText(resp);
 	    }
 	    catch (Exception e){
 	    	Log.e("TAG", e.getMessage());
